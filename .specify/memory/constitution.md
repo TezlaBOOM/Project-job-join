@@ -1,50 +1,32 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# JST Recruitment Portal Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Multi-Tenant Data Isolation (NON-NEGOTIABLE)
+Every JST (Jednostka Samorządu Terytorialnego) operates in a strictly isolated data space. Cross-tenant data leakage is a critical security violation. All database queries outside superadmin operations must enforce tenant scoping via automated middleware or global model scopes.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Statutory Compliance & Public Transparency
+The application must strictly comply with the Polish Act on Local Government Employees (*Ustawa o pracownikach samorządowych*). Public recruitment announcements, requirements, protocols, and recruitment results must be accessible publicly without authentication, ensuring transparency and compliance with public information disclosure standards (BIP).
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Accessibility First (WCAG 2.1 AA Mandatory)
+All public-facing views and candidate application workflows must strictly comply with WCAG 2.1 level AA standards as mandated for Polish public administration entities. Keyboard navigation, screen-reader compatibility, contrast ratios, and alternative text are mandatory quality gates.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Privacy & Security by Design (RODO / KRI)
+Data privacy is paramount. Personal data of job applicants must be handled with explicit consent tracking, strict retention periods, and automated data purging schedules. Two-Factor Authentication (2FA) is mandatory for all administrative roles (Recruiter, Moderator, Superadmin). Audit logging of all administrative actions is immutable and required by KRI (*Krajowe Ramy Interoperacyjności*).
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Modular & Scalable Container Architecture
+The architecture must allow decoupling the public-facing Candidate Portal from the administrative JST/Admin Panel into separate Docker containers. This enables independent horizontal scaling of public application traffic without risking administrative backend stability.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Security & Compliance Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- **Encryption**: TLS in transit, sensitive fields encrypted at rest.
+- **Authentication**: 2FA token via email for administrative access; local network access constraint support for JST panel logins.
+- **Audit Logging**: Structured log containing timestamp, user_id, tenant_id, action, IP address, and payload diffs for every state-changing action.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow & Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+1. **Spec-Driven Development**: Every epic and feature must have a corresponding specification in `specs/`.
+2. **Automated Testing**: Unit tests for tenant isolation, RODO purging logic, and evaluation workflow; Contract/Feature tests for API endpoints.
+3. **WCAG Audits**: Automated and manual accessibility checks on candidate-facing forms before release.
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
-
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-27
