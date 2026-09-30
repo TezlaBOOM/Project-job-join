@@ -98,6 +98,27 @@
             <div class="form-help">Zmiana treści lub numeru wersji utworzy nową wersję klauzuli, która będzie przypisywana do nowo składanych zgłoszeń.</div>
         </div>
 
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border-subtle); padding-bottom: 0.5rem;">
+            5. Automatyczne aktualizacje z GitHub
+        </h2>
+
+        <div style="background-color: var(--color-surface-subtle); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; font-size: 0.9rem;">
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <span style="font-weight: 600; color: var(--color-text-muted);">Repozytorium:</span>
+                <span style="font-family: monospace; word-break: break-all; color: var(--color-primary);">{{ config('updater.github_repository') ?: 'Nie skonfigurowano' }}</span>
+                
+                <span style="font-weight: 600; color: var(--color-text-muted);">Gałąź (branch):</span>
+                <span style="font-family: monospace; font-weight: 600;">{{ config('updater.branch') }}</span>
+
+                <span style="font-weight: 600; color: var(--color-text-muted);">Token (PAT):</span>
+                <span>{{ config('updater.token') ? 'Skonfigurowany (aktywny)' : 'Brak (wymagany tylko dla repozytoriów prywatnych)' }}</span>
+            </div>
+            <div class="form-help" style="margin-top: 0.75rem; border-top: 1px dashed var(--color-border); padding-top: 0.75rem;">
+                Link do repozytorium oraz token definiowane są w pliku środowiskowym <code style="padding: 2px 6px; background: rgba(0,0,0,0.06); border-radius: 4px;">.env</code> pod kluczami <code style="padding: 2px 6px; background: rgba(0,0,0,0.06); border-radius: 4px;">GITHUB_REPOSITORY</code> oraz <code style="padding: 2px 6px; background: rgba(0,0,0,0.06); border-radius: 4px;">GITHUB_TOKEN</code>.
+                Aktualizację można uruchomić poleceniem: <code style="padding: 2px 6px; background: rgba(0,0,0,0.06); border-radius: 4px;">./update.sh</code> lub <code style="padding: 2px 6px; background: rgba(0,0,0,0.06); border-radius: 4px;">composer run update-project</code>.
+            </div>
+        </div>
+
         <div style="text-align: right; margin-top: 2rem; border-top: 1px solid var(--color-border); padding-top: 1.25rem;">
             <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
                 Zapisz ustawienia
