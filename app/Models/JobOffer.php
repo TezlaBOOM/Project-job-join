@@ -13,6 +13,14 @@ class JobOffer extends Model
 {
     use SoftDeletes;
 
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_PUBLISHED = 'published';
+
+    public const STATUS_COMPLETED = 'completed';
+
+    public const STATUS_ARCHIVED = 'archived';
+
     protected $fillable = [
         'public_id',
         'slug',
@@ -99,8 +107,23 @@ class JobOffer extends Model
             ->where('deadline_at', '>=', now());
     }
 
+    public function qualifiedApplications(): HasMany
+    {
+        return $this->hasMany(Application::class)->where('status', Application::STATUS_QUALIFIED);
+    }
+
+    public function unqualifiedApplications(): HasMany
+    {
+        return $this->hasMany(Application::class)->where('status', '!=', Application::STATUS_QUALIFIED);
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
     public function isOpen(): bool
     {
-        return $this->status === 'published' && $this->deadline_at->isFuture();
+        return $this->status === self::STATUS_PUBLISHED && $this->deadline_at->isFuture();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Application;
 use App\Models\ContractType;
 use App\Models\Department;
 use App\Models\Form;
@@ -11,6 +12,7 @@ use App\Models\JobOffer;
 use App\Models\Location;
 use App\Services\AuditLogger;
 use App\Services\HtmlSanitizer;
+use App\Services\RecruitmentClosureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,7 +22,12 @@ class JobOfferController extends Controller
     public function index(Request $request): View
     {
         $query = JobOffer::with(['department', 'contractType', 'category', 'location', 'creator'])
-            ->withCount('applications');
+            ->withCount([
+                'applications',
+                'applications as qualified_applications_count' => function ($q) {
+                    $q->where('status', Application::STATUS_QUALIFIED);
+                },
+            ]);
 
         if ($request->filled('q')) {
             $term = trim($request->input('q'));
@@ -126,12 +133,39 @@ class JobOfferController extends Controller
             $validated['published_at'] = now();
         }
 
+        $isCompleting = $validated['status'] === JobOffer::STATUS_COMPLETED;
+        $purgeRequested = $request->boolean('purge_unqualified');
+
         $oldValues = $offer->toArray();
         $offer->update($validated);
 
         AuditLogger::log('offer_updated', $offer, $oldValues, $offer->toArray());
 
+        if ($isCompleting && $purgeRequested) {
+            $closure = app(RecruitmentClosureService::class)->completeRecruitment($offer, auth()->id());
+            $msg = "Nabór „{$offer->title}” został zaktualizowany i zakończony. Zachowano ofertę oraz dane wybranego kandydata ({$closure['qualified_candidates_count']}), a trwale usunięto dane i pliki CV {$closure['purged_candidates_count']} niezakwalifikowanych kandydatów.";
+
+            return redirect()->route('admin.offers.index')->with('status', $msg);
+        }
+
         return redirect()->route('admin.offers.index')->with('status', "Nabór „{$offer->title}” został zaktualizowany.");
+    }
+
+    public function complete(Request $request, string $publicId, RecruitmentClosureService $service): RedirectResponse
+    {
+        $offer = JobOffer::where('public_id', $publicId)->firstOrFail();
+
+        $result = $service->completeRecruitment($offer, auth()->id());
+
+        $msg = "Proces rekrutacji dla naboru „{$offer->title}” został zakończony. ";
+        if ($result['qualified_candidates_count'] > 0) {
+            $msg .= "Zachowano ofertę pracy oraz dane i dokumenty wygranego kandydata ({$result['qualified_candidates_count']}). ";
+        } else {
+            $msg .= 'Zachowano ofertę pracy (żaden kandydat nie był oznaczony jako zakwalifikowany). ';
+        }
+        $msg .= "Trwale usunięto dane osobowe i pliki CV {$result['purged_candidates_count']} niezakwalifikowanych kandydatów.";
+
+        return redirect()->back()->with('status', $msg);
     }
 
     public function duplicate(string $publicId): RedirectResponse

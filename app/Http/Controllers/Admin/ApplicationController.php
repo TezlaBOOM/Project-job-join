@@ -54,7 +54,17 @@ class ApplicationController extends Controller
         $applications = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
         $offers = JobOffer::orderBy('title')->get();
 
-        return view('admin.applications.index', compact('applications', 'offers'));
+        $selectedOffer = null;
+        if ($request->filled('offer_id')) {
+            $selectedOffer = JobOffer::withCount([
+                'applications',
+                'applications as qualified_applications_count' => function ($q) {
+                    $q->where('status', Application::STATUS_QUALIFIED);
+                },
+            ])->find($request->input('offer_id'));
+        }
+
+        return view('admin.applications.index', compact('applications', 'offers', 'selectedOffer'));
     }
 
     public function show(string $publicId): View

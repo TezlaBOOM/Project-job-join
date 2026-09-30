@@ -76,6 +76,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/oferty', [AdminJobOfferController::class, 'store'])->name('admin.offers.store')->middleware('role:recruiter,admin');
         Route::get('/oferty/{public_id}/edytuj', [AdminJobOfferController::class, 'edit'])->name('admin.offers.edit')->middleware('role:recruiter,admin');
         Route::put('/oferty/{public_id}', [AdminJobOfferController::class, 'update'])->name('admin.offers.update')->middleware('role:recruiter,admin');
+        Route::post('/oferty/{public_id}/zakoncz', [AdminJobOfferController::class, 'complete'])->name('admin.offers.complete')->middleware('role:recruiter,admin');
         Route::post('/oferty/{public_id}/duplicate', [AdminJobOfferController::class, 'duplicate'])->name('admin.offers.duplicate')->middleware('role:recruiter,admin');
         Route::delete('/oferty/{public_id}', [AdminJobOfferController::class, 'destroy'])->name('admin.offers.destroy')->middleware('role:recruiter,admin');
 

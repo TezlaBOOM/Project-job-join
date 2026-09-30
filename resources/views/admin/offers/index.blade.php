@@ -97,17 +97,35 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.applications.index', ['offer_id' => $offer->id]) }}" style="font-weight: bold; text-decoration: none;">
+                            <a href="{{ route('admin.applications.index', ['offer_id' => $offer->id]) }}" style="font-weight: bold; text-decoration: none;" title="Zobacz zgłoszenia">
                                 👥 {{ $offer->applications_count }}
                             </a>
+                            @if(($offer->qualified_applications_count ?? 0) > 0)
+                                <div style="font-size: 0.75rem; color: var(--color-success); font-weight: 600;" title="Kandydaci zakwalifikowani / wygrani">
+                                    ⭐ {{ $offer->qualified_applications_count }} wygrany
+                                </div>
+                            @endif
                         </td>
                         <td style="text-align: right;">
-                            <div style="display: inline-flex; gap: 0.35rem; align-items: center;">
+                            <div style="display: inline-flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                                 <a href="{{ route('public.offers.show', $offer->slug) }}" target="_blank" class="btn btn-secondary" style="min-height: 32px; padding: 0.2rem 0.5rem; font-size: 0.8rem;" title="Podgląd publiczny">
                                     Podgląd
                                 </a>
 
                                 @if(auth()->user()->isRecruiter())
+                                    @php
+                                        $unqualifiedCount = $offer->applications_count - ($offer->qualified_applications_count ?? 0);
+                                    @endphp
+
+                                    @if($offer->applications_count > 0 && ($offer->status === 'published' || $unqualifiedCount > 0))
+                                        <form action="{{ route('admin.offers.complete', $offer->public_id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Czy na pewno chcesz zakończyć proces rekrutacji dla naboru: „{{ addslashes($offer->title) }}”?\n\n- Oferta pracy pozostanie w systemie (status: Zakończona).\n- Dane wygranego kandydata ({{ $offer->qualified_applications_count ?? 0 }} zakwalifikowanych) i jego pliki zostaną ZACHOWANE.\n- Dane osobowe i pliki CV pozostałych kandydatów ({{ $unqualifiedCount }} niezakwalifikowanych) zostaną TRWALE USUNIĘTE zgodnie z RODO.{{ ($offer->qualified_applications_count ?? 0) === 0 ? '\n\nUWAGA: Żaden kandydat nie ma statusu Zakwalifikowany! Zostaną usunięte dane wszystkich kandydatów.' : '' }}');">
+                                            @csrf
+                                            <button type="submit" class="btn" style="min-height: 32px; padding: 0.2rem 0.5rem; font-size: 0.8rem; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;" title="Zakończ nabór i usuń dane niezakwalifikowanych kandydatów (zostaw wygranego)">
+                                                🏁 Zakończ nabór
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <a href="{{ route('admin.offers.edit', $offer->public_id) }}" class="btn btn-secondary" style="min-height: 32px; padding: 0.2rem 0.5rem; font-size: 0.8rem;">
                                         Edytuj
                                     </a>

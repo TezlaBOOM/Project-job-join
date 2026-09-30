@@ -60,6 +60,40 @@
     </form>
 </div>
 
+@if($selectedOffer)
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; border-left: 4px solid var(--color-primary); background: var(--color-surface-subtle);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="font-size: 0.8125rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 700; letter-spacing: 0.05em;">
+                    Wybrany nabór:
+                </div>
+                <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0.2rem 0;">
+                    {{ $selectedOffer->title }}
+                </h2>
+                <div style="font-size: 0.875rem; color: var(--color-text-muted);">
+                    Status oferty: <strong>{{ $selectedOffer->status === 'completed' ? 'Zakończona' : ($selectedOffer->status === 'published' ? 'Opublikowana' : $selectedOffer->status) }}</strong> &bull;
+                    Zgłoszeń: <strong>{{ $selectedOffer->applications_count }}</strong> &bull;
+                    Zakwalifikowani / wygrani: <strong style="color: var(--color-success);">{{ $selectedOffer->qualified_applications_count ?? 0 }}</strong>
+                </div>
+            </div>
+
+            @if(auth()->user()->isRecruiter())
+                @php
+                    $unqualCount = $selectedOffer->applications_count - ($selectedOffer->qualified_applications_count ?? 0);
+                @endphp
+                @if($selectedOffer->applications_count > 0 && ($selectedOffer->status === 'published' || $unqualCount > 0))
+                    <form action="{{ route('admin.offers.complete', $selectedOffer->public_id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Czy na pewno chcesz zakończyć proces rekrutacji dla naboru „{{ addslashes($selectedOffer->title) }}”?\n\n- Oferta pozostanie w systemie (status: Zakończona).\n- Dane wygranego kandydata ({{ $selectedOffer->qualified_applications_count ?? 0 }} zakwalifikowanych) i jego CV zostaną ZACHOWANE.\n- Dane osobowe i pliki CV pozostałych kandydatów ({{ $unqualCount }} niezakwalifikowanych) zostaną TRWALE USUNIĘTE zgodnie z RODO.{{ ($selectedOffer->qualified_applications_count ?? 0) === 0 ? '\n\nUWAGA: Żaden kandydat nie posiada statusu Zakwalifikowany!' : '' }}');">
+                        @csrf
+                        <button type="submit" class="btn" style="background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; font-weight: 600;">
+                            🏁 Zakończ ten nabór i usuń niezakwalifikowanych
+                        </button>
+                    </form>
+                @endif
+            @endif
+        </div>
+    </div>
+@endif
+
 <!-- Tabela zgłoszeń z akcjami masowymi -->
 <form action="{{ route('admin.applications.bulk-status') }}" method="POST" id="bulk-form">
     @csrf

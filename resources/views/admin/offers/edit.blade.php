@@ -99,12 +99,21 @@
 
             <div class="form-group">
                 <label for="status" class="form-label">Status ogłoszenia <span style="color: var(--color-danger);">*</span></label>
-                <select id="status" name="status" class="form-control" required>
+                <select id="status" name="status" class="form-control" required onchange="togglePurgeOption(this.value)">
                     <option value="draft" {{ old('status', $offer->status) === 'draft' ? 'selected' : '' }}>Szkic (niewidoczne publicznie)</option>
                     <option value="published" {{ old('status', $offer->status) === 'published' ? 'selected' : '' }}>Opublikowana (widoczna na portalu)</option>
                     <option value="completed" {{ old('status', $offer->status) === 'completed' ? 'selected' : '' }}>Zakończona</option>
                     <option value="archived" {{ old('status', $offer->status) === 'archived' ? 'selected' : '' }}>Zarchiwizowana</option>
                 </select>
+
+                <div id="purge_rodo_box" style="margin-top: 0.5rem; padding: 0.75rem; background: var(--color-surface-subtle); border-radius: 0.375rem; border: 1px solid var(--color-border); font-size: 0.875rem; {{ old('status', $offer->status) === 'completed' ? '' : 'display: none;' }}">
+                    <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; margin: 0;">
+                        <input type="checkbox" name="purge_unqualified" value="1" id="purge_unqualified" {{ old('purge_unqualified', '1') ? 'checked' : '' }} style="margin-top: 0.2rem;">
+                        <span>
+                            <strong>Zgodność z RODO:</strong> Usuń trwale dane osobowe i pliki CV kandydatów, którzy się nie zakwalifikowali (oferta pracy i dane wygranego zostaną zachowane).
+                        </span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -140,4 +149,40 @@
         </div>
     </form>
 </div>
+
+@if($offer->applications()->count() > 0)
+    <div class="card" style="margin-top: 1.5rem; border-left: 4px solid var(--color-primary); background: var(--color-surface-subtle); padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">
+                    🏁 Zakończenie procesu rekrutacji
+                </h3>
+                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin: 0;">
+                    Łącznie zgłoszeń: <strong>{{ $offer->applications()->count() }}</strong> &bull;
+                    Zakwalifikowani / wygrani: <strong style="color: var(--color-success);">{{ $offer->qualifiedApplications()->count() }}</strong> &bull;
+                    Niezakwalifikowani: <strong style="color: var(--color-danger);">{{ $offer->unqualifiedApplications()->count() }}</strong>
+                </p>
+                <div style="font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                    Zgodnie z wymogami RODO, po zakończeniu naboru oferta pracy oraz dane wybranego kandydata pozostają w systemie. Dane osobowe i pliki CV pozostałych kandydatów są trwale niszczone.
+                </div>
+            </div>
+
+            <form action="{{ route('admin.offers.complete', $offer->public_id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Czy na pewno chcesz zakończyć proces rekrutacji dla tego naboru?\n\n- Oferta pozostanie w systemie (status: Zakończona).\n- Dane wygranego kandydata ({{ $offer->qualifiedApplications()->count() }}) i jego CV zostaną zachowane.\n- Dane osobowe i pliki CV pozostałych kandydatów ({{ $offer->unqualifiedApplications()->count() }}) zostaną trwale usunięte.{{ $offer->qualifiedApplications()->count() === 0 ? '\n\nUWAGA: Żaden kandydat nie jest oznaczony jako zakwalifikowany!' : '' }}');">
+                @csrf
+                <button type="submit" class="btn btn-secondary" style="background: var(--color-surface); border: 1px solid var(--color-border); font-weight: 600;">
+                    Zakończ proces i oczyść dane
+                </button>
+            </form>
+        </div>
+    </div>
+@endif
+
+<script>
+function togglePurgeOption(val) {
+    var box = document.getElementById('purge_rodo_box');
+    if (box) {
+        box.style.display = (val === 'completed') ? 'block' : 'none';
+    }
+}
+</script>
 @endsection
