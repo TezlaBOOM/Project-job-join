@@ -31,17 +31,19 @@ class TwoFactorService
      */
     public function verifyCode(User $user, string $code): bool
     {
-        if (!$user->two_factor_code || !$user->two_factor_expires_at) {
+        if (! $user->two_factor_code || ! $user->two_factor_expires_at) {
             return false;
         }
 
         if (Carbon::now()->greaterThan($user->two_factor_expires_at)) {
             $this->clearCode($user);
+
             return false;
         }
 
         if (password_verify($code, $user->two_factor_code)) {
             $this->clearCode($user);
+
             return true;
         }
 

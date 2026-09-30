@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -12,19 +12,18 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'tenant_id',
         'name',
         'email',
         'password',
         'role',
-        'two_factor_code',
-        'two_factor_expires_at',
+        'is_active',
+        'last_login_at',
+        'password_changed_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_code',
     ];
 
     protected function casts(): array
@@ -32,27 +31,39 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'two_factor_expires_at' => 'datetime',
+            'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
+            'password_changed_at' => 'datetime',
         ];
     }
 
-    public function tenant(): BelongsTo
+    public function loginCodes(): HasMany
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->hasMany(LoginCode::class);
     }
 
-    public function isSuperAdmin(): bool
+    public function jobOffers(): HasMany
     {
-        return $this->role === 'superadmin';
+        return $this->hasMany(JobOffer::class, 'created_by');
     }
 
-    public function isModerator(): bool
+    public function auditLogs(): HasMany
     {
-        return $this->role === 'moderator' || $this->isSuperAdmin();
+        return $this->hasMany(AuditLog::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 
     public function isRecruiter(): bool
     {
-        return $this->role === 'recruiter' || $this->isModerator() || $this->isSuperAdmin();
+        return in_array($this->role, ['admin', 'recruiter'], true);
+    }
+
+    public function isViewer(): bool
+    {
+        return in_array($this->role, ['admin', 'recruiter', 'viewer'], true);
     }
 }
